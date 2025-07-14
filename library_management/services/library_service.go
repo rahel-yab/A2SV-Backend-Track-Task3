@@ -8,7 +8,7 @@ import (
 
 type LibraryManager interface {
 	AddBook(book models.Book)
-	RemoveBook(bookID int)
+	RemoveBook(bookID int) error
 	BorrowBook(bookID int, memberID int) error
 	ReturnBook(bookID int, memberID int) error
 	ListAvailableBooks() []models.Book
@@ -32,8 +32,12 @@ func (l *Library) AddBook(book models.Book) {
 	l.books[book.ID] = book
 }
 
-func (l *Library) RemoveBook(bookID int) {
+func (l *Library) RemoveBook(bookID int) error {
+	if _, exists := l.books[bookID]; !exists {
+		return errors.New("book not found")
+	}
 	delete(l.books, bookID)
+	return nil
 }
 
 func (l *Library) BorrowBook(bookID int, memberID int) error {

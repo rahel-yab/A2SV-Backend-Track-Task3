@@ -31,8 +31,12 @@ func AddBook(reader *bufio.Reader) {
 func RemoveBook(reader *bufio.Reader) {
 	fmt.Print("Enter Book ID to remove: ")
 	id, _ := strconv.Atoi(readLine(reader))
-	services.LibraryInstance.RemoveBook(id)
-	fmt.Println("Book removed if it existed.")
+	err := services.LibraryInstance.RemoveBook(id)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Book removed successfully.")
+	}
 }
 
 func BorrowBook(reader *bufio.Reader) {
