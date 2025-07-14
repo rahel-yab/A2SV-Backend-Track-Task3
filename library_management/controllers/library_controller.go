@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"example.com/task3/library_management/models"
-	"example.com/task3/library_management/services"
+	"example.com/task3/models"
+	"example.com/task3/services"
 )
 
 func AddBook(reader *bufio.Reader) {
@@ -24,14 +24,14 @@ func AddBook(reader *bufio.Reader) {
 		Author: author,
 		Status: "Available",
 	}
-	services.AddBook(book)
+	services.LibraryInstance.AddBook(book)
 	fmt.Println("Book added successfully.")
 }
 
 func RemoveBook(reader *bufio.Reader) {
 	fmt.Print("Enter Book ID to remove: ")
 	id, _ := strconv.Atoi(readLine(reader))
-	services.RemoveBook(id)
+	services.LibraryInstance.RemoveBook(id)
 	fmt.Println("Book removed if it existed.")
 }
 
@@ -40,7 +40,7 @@ func BorrowBook(reader *bufio.Reader) {
 	bookID, _ := strconv.Atoi(readLine(reader))
 	fmt.Print("Enter Member ID: ")
 	memberID, _ := strconv.Atoi(readLine(reader))
-	err := services.BorrowBook(bookID, memberID)
+	err := services.LibraryInstance.BorrowBook(bookID, memberID)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -53,7 +53,7 @@ func ReturnBook(reader *bufio.Reader) {
 	bookID, _ := strconv.Atoi(readLine(reader))
 	fmt.Print("Enter Member ID: ")
 	memberID, _ := strconv.Atoi(readLine(reader))
-	err := services.ReturnBook(bookID, memberID)
+	err := services.LibraryInstance.ReturnBook(bookID, memberID)
 	if err != nil {
 		fmt.Println("Error:", err)
 	} else {
@@ -62,7 +62,7 @@ func ReturnBook(reader *bufio.Reader) {
 }
 
 func ListAvailableBooks() {
-	books := services.ListAvailableBooks()
+	books := services.LibraryInstance.ListAvailableBooks()
 	if len(books) == 0 {
 		fmt.Println("No available books.")
 		return
@@ -76,7 +76,7 @@ func ListAvailableBooks() {
 func ListBorrowedBooks(reader *bufio.Reader) {
 	fmt.Print("Enter Member ID: ")
 	memberID, _ := strconv.Atoi(readLine(reader))
-	books := services.ListBorrowedBooks(memberID)
+	books := services.LibraryInstance.ListBorrowedBooks(memberID)
 	if len(books) == 0 {
 		fmt.Println("No borrowed books for this member.")
 		return

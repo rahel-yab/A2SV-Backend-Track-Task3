@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"example.com/task3/library_management/controllers"
+	"example.com/task3/controllers"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 		case "6":
 			controllers.ListBorrowedBooks(reader)
 		case "0":
-			fmt.Println("Exiting... Goodbye!")
+			fmt.Println("Exiting...")
 			return
 		default:
 			fmt.Println("Invalid option. Please try again.")

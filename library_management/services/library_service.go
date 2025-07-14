@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 
-	"example.com/task3/library_management/models"
+	"example.com/task3/models"
 )
 
 type LibraryManager interface {
@@ -15,73 +15,83 @@ type LibraryManager interface {
 	ListBorrowedBooks(memberID int) []models.Book
 }
 
-var books []models.Book
-var members []models.Member
-
-func AddBook(book models.Book) {
-	book.Status = "Available"
-	books = append(books, book)
+type Library struct {
+	books   map[int]models.Book
+	members map[int]models.Member
 }
 
-func RemoveBook(bookID int) {
-	for i, b := range books {
+var library = Library{
+	books:   make(map[int]models.Book),
+	members: make(map[int]models.Member),
+}
+
+var LibraryInstance = &library
+
+func (l *Library) AddBook(book models.Book) {
+	book.Status = "Available"
+	l.books[book.ID] = book
+}
+
+func (l *Library) RemoveBook(bookID int) {
+	delete(l.books, bookID)
+}
+
+func (l *Library) BorrowBook(bookID int, memberID int) error {
+	book, ok := l.books[bookID]
+	if !ok {
+		return errors.New("book not found")
+	}
+	if book.Status == "Borrowed" {
+		return errors.New("book is already borrowed")
+	}
+	book.Status = "Borrowed"
+	l.books[bookID] = book
+
+	member, ok := l.members[memberID]
+	if !ok {
+		member = models.Member{
+			ID:           memberID,
+			Name:         "Member",
+			BorrowedBooks: []models.Book{},
+		}
+	}
+	member.BorrowedBooks = append(member.BorrowedBooks, book)
+	l.members[memberID] = member
+	return nil
+}
+
+func (l *Library) ReturnBook(bookID int, memberID int) error {
+	book, ok := l.books[bookID]
+	if !ok {
+		return errors.New("book not found")
+	}
+	if book.Status != "Borrowed" {
+		return errors.New("book is not currently borrowed")
+	}
+	member, ok := l.members[memberID]
+	if !ok {
+		return errors.New("member not found")
+	}
+	found := false
+	for i, b := range member.BorrowedBooks {
 		if b.ID == bookID {
-			books = append(books[:i], books[i+1:]...)
+			member.BorrowedBooks = append(member.BorrowedBooks[:i], member.BorrowedBooks[i+1:]...)
+			found = true
 			break
 		}
 	}
-}
-
-func BorrowBook(bookID int, memberID int) error {
-	for i, b := range books {
-		if b.ID == bookID {
-			if b.Status == "Borrowed" {
-				return errors.New("book is already borrowed")
-			}
-			books[i].Status = "Borrowed"
-			for j, m := range members {
-				if m.ID == memberID {
-					members[j].BorrowedBooks = append(members[j].BorrowedBooks, b)
-					return nil
-				}
-			}
-			newMember := models.Member{
-				ID:           memberID,
-				Name:         "Member",
-				BorrowedBooks: []models.Book{b},
-			}
-			members = append(members, newMember)
-			return nil
-		}
+	if !found {
+		return errors.New("book not borrowed by this member")
 	}
-	return errors.New("book not found")
+	book.Status = "Available"
+	l.books[bookID] = book
+	l.members[memberID] = member
+	return nil
 }
 
-func ReturnBook(bookID int, memberID int) error {
-	for i, b := range books {
-		if b.ID == bookID {
-			if b.Status != "Borrowed" {
-				return errors.New("book is not currently borrowed")
-			}
-			books[i].Status = "Available"
-			for j, m := range members {
-				if m.ID == memberID {
-					for k, bk := range m.BorrowedBooks {
-						if bk.ID == bookID {
-							members[j].BorrowedBooks = append(m.BorrowedBooks[:k], m.BorrowedBooks[k+1:]...)
-							return nil
-						}
-					}
-				}
-			}
-		}
-	}
-	return errors.New("book not found or member mismatch")
-}
-
-func ListAvailableBooks() []models.Book {
+func (l *Library) ListAvailableBooks() []models.Book {
 	var available []models.Book
-	for _, b := range books {
+	for _, b := range l.books {
 		if b.Status == "Available" {
 			available = append(available, b)
 		}
@@ -89,11 +99,10 @@ func ListAvailableBooks() []models.Book {
 	return available
 }
 
-func ListBorrowedBooks(memberID int) []models.Book {
-	for _, m := range members {
-		if m.ID == memberID {
-			return m.BorrowedBooks
-		}
+func (l *Library) ListBorrowedBooks(memberID int) []models.Book {
+	member, ok := l.members[memberID]
+	if !ok {
+		return nil
 	}
-	return nil
+	return member.BorrowedBooks
 }
