@@ -71,9 +71,3 @@ library_management/
   - **Controllers:** Handle user input and output.
   - **Services:** Contain business logic and manage data.
   - **Models:** Define the data structures for books and members.
-- All data is stored in memory (no database required).
-- Error handling is provided for invalid operations (e.g., borrowing an already borrowed book).
-
----
-
-For further details, refer to the source code in each respective folder.
